@@ -23,6 +23,8 @@ MESSAGE_TAGS = {
     messages.ERROR: 'danger',
 }
 
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")  # Creates a "media" folder at project root
+MEDIA_URL = "/media/"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
