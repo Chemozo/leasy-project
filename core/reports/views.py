@@ -5,7 +5,8 @@ from django.contrib import messages
 from django.shortcuts import redirect
 from django.conf import settings
 from django.core.paginator import Paginator
-
+from django_rq import enqueue
+from .tasks import generate_report_task
 import pandas as pd
 from openpyxl import load_workbook
 
@@ -20,6 +21,19 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     template_name = "reports/dashboard.html"
 
     def post(self, request, *args, **kwargs):
+        if "generate_report" in request.POST:
+            # Handle report generation
+            selected_columns = request.POST.getlist("selected_columns")
+            if not selected_columns:
+                messages.error(request, "Please select at least one column.")
+                return redirect("dashboard")
+
+            data = request.session.get("uploaded_data", [])
+            enqueue(generate_report_task, request.user.email, selected_columns, data)
+            messages.success(
+                request, "Report is being generated. You'll receive an email shortly."
+            )
+            return redirect("dashboard")
         uploaded_file = request.FILES.get("file")
 
         if not uploaded_file:
