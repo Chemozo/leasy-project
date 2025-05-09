@@ -1,5 +1,6 @@
 # Virtual environment
 venv/
+wsl_env/
 
 # Database
 *.sqlite3
