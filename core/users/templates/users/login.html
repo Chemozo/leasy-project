@@ -1,9 +1,22 @@
-{% extends "base.html" %} {% block content %}
-<div class="container mt-5">
-  <h2 class="mb-4">Iniciar Sesión</h2>
-  <form method="post">
-    {% csrf_token %} {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Ingresar</button>
-  </form>
-</div>
-{% endblock %}
+{% extends "base.html" %}
+{% block content %}
+  <div class="min-vh-100 d-flex align-items-center">
+    <div class="container">
+      <form class="form-signin mx-auto col-md-6" method="post">
+        {% csrf_token %}
+        <h1 class="h3 mb-4 text-center">Iniciar Sesión</h1>
+        <!-- Email Field -->
+        <div class="mb-3">
+          <label for="inputEmail" class="visually-hidden">Correo Electrónico</label>
+          {{ form.username }}
+        </div>
+        <!-- Password Field -->
+        <div class="mb-3">
+          <label for="inputPassword" class="visually-hidden">Contraseña</label>
+          {{ form.password }}
+        </div>
+        <button class="w-100 btn btn-lg btn-primary" type="submit">Ingresar</button>
+      </form>
+    </div>
+  </div>
+{% endblock content %}
