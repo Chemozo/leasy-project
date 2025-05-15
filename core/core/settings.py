@@ -93,6 +93,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "core.urls"
+CSRF_FAILURE_VIEW = "django.views.csrf.csrf_failure"
 
 TEMPLATES = [
     {
