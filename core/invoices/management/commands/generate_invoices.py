@@ -68,7 +68,9 @@ class Command(BaseCommand):
                 period_end = start_date.replace(
                     day=calendar.monthrange(start_date.year, start_date.month)[1]
                 )
-            due_date = period_end + timedelta(days=1).replace(day=15)
+            # Set due_date to the 15th of the next month
+            next_month = period_end.replace(day=1) + relativedelta(months=1)
+            due_date = next_month.replace(day=15)
 
         else:  # monthly
             period_start = start_date.replace(day=1)
@@ -101,7 +103,9 @@ class Command(BaseCommand):
             else:
                 period_start = last_period_end + timedelta(days=1)
                 period_end = period_start.replace(day=14)
-            due_date = period_end + timedelta(days=1).replace(day=15)
+            # Set due_date to the 15th of the next month
+            next_month = period_end.replace(day=1) + relativedelta(months=1)
+            due_date = next_month.replace(day=15)
 
         else:  # monthly
             period_start = last_period_end + timedelta(days=1)

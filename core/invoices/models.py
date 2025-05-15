@@ -2,7 +2,7 @@ from django.db import models
 from django.core.validators import MinValueValidator
 from contracts.models import Contract
 from django.utils import timezone
-from datetime import timedelta
+from dateutil.relativedelta import relativedelta
 
 
 class Invoice(models.Model):
@@ -66,9 +66,12 @@ class Invoice(models.Model):
 
     @classmethod
     def calculate_due_date(cls, period_end, billing_cycle):
-        """Calcula la fecha de vencimiento según el ciclo de facturación"""
-        return {
-            "weekly": period_end + timedelta(days=7),
-            "biweekly": period_end + timedelta(days=14),
-            "monthly": period_end.replace(day=1) + timedelta(days=32),
-        }.get(billing_cycle, period_end)
+        """Calcula la fecha de vencimiento según el ciclo de facturación usando relativedelta"""
+        if billing_cycle == "weekly":
+            return period_end + relativedelta(weeks=1)
+        elif billing_cycle == "biweekly":
+            return period_end + relativedelta(weeks=2)
+        elif billing_cycle == "monthly":
+            return period_end + relativedelta(months=1, day=1)
+        else:
+            return period_end
