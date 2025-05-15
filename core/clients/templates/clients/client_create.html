@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="container mt-4">
+        <h2>Register New Client</h2>
+        <form method="post">
+            {% csrf_token %}
+            <div class="card">
+                <div class="card-body">
+                    {% for field in form %}
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors|first }}</div>{% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Save Client
+                    </button>
+                    <a href="{% url 'client_list' %}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock content %}

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="container mt-4">
+    <h2>Client List</h2>
+    <!-- Search Form -->
+    <form method="get" class="mb-4">
+      <div class="input-group">
+        <input type="text"
+               name="q"
+               class="form-control"
+               placeholder="Search by name or document..."
+               value="{{ request.GET.q }}">
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-search"></i> Search
+        </button>
+      </div>
+    </form>
+    <!-- Client Table -->
+    <div class="table-responsive">
+      <table class="table table-hover">
+        <thead class="table-light">
+          <tr>
+            <th>Full Name</th>
+            <th>Document Number</th>
+            <th>Active Contract</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for client in clients %}
+            <tr>
+              <td>{{ client.first_name }} {{ client.last_name }}</td>
+              <td>{{ client.document_number }}</td>
+              <td>
+                {% if client.has_active_contract %}
+                  <span class="badge bg-success">Yes</span>
+                {% else %}
+                  <span class="badge bg-secondary">No</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="3" class="text-center">No clients found</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <nav aria-label="Page navigation">
+      <ul class="pagination">
+        {% if page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+          </li>
+        {% endif %}
+        <li class="page-item disabled">
+          <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        </li>
+        {% if page_obj.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+          </li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+{% endblock content %}
