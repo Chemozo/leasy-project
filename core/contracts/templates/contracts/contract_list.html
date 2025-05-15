@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="container mt-4">
+        <h1>Active Contracts</h1>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Client</th>
+                    <th>Vehicle</th>
+                    <th>Billing Cycle</th>
+                    <th>Installment Amount</th>
+                    <th>Pending Invoices</th>
+                    <th>Total Pending Amount</th>
+                    <th>Days Since Latest Invoice</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for contract in contracts %}
+                    <tr>
+                        <td>{{ contract.client }}</td>
+                        <td>{{ contract.vehicle }}</td>
+                        <td>{{ contract.get_billing_cycle_display }}</td>
+                        <td>{{ contract.installment_amount }}</td>
+                        <td>{{ contract.pending_invoices }}</td>
+                        <td>{{ contract.total_pending_amount }}</td>
+                        <td>{{ contract.days_since_latest_invoice }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7">No active contracts found.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="pagination">
+            {% if is_paginated %}
+                {% if page_obj.has_previous %}
+                    <a href="?page=1">« First</a>
+                    <a href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                {% endif %}
+                <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}">Next</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}">Last »</a>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+{% endblock content %}
