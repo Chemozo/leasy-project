@@ -9,8 +9,11 @@ from django_rq import enqueue
 from .tasks import generate_report_task
 import pandas as pd
 from openpyxl import load_workbook
+from datetime import datetime
 
 from clients.models import Client
+from vehicles.models import Vehicle
+from contracts.models import Contract
 
 MAX_FILE_SIZE = 5 * 1024 * 1024
 REQUIRED_CLIENT_COLUMNS = {"Nombres", "Apellidos", "Número de documento"}
@@ -34,6 +37,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 request, "Report is being generated. You'll receive an email shortly."
             )
             return redirect("dashboard")
+
         uploaded_file = request.FILES.get("file")
 
         if not uploaded_file:
@@ -69,8 +73,10 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 return redirect("dashboard")
 
             request.session["uploaded_data"] = df.to_dict("records")
-
             messages.success(request, "File uploaded successfully!")
+
+            self.save_to_database(df.to_dict("records"))
+
         except Exception as e:
             messages.error(request, f"Error processing file: {str(e)}")
 
@@ -137,12 +143,76 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         return context
 
     def save_to_database(self, data):
-        # Example: Save clients
-        for row in data:
-            Client.objects.get_or_create(
+        # Step 1: Bulk create Clients
+        new_clients = [
+            Client(
                 document_number=row["Número de documento"],
-                defaults={
-                    "first_name": row["Nombres"],
-                    "last_name": row["Apellidos"],
-                },
+                first_name=row["Nombres"],
+                last_name=row["Apellidos"],
             )
+            for row in data
+        ]
+        Client.objects.bulk_create(new_clients, ignore_conflicts=True)
+
+        # Step 2: Bulk create Vehicles
+        new_vehicles = [
+            Vehicle(
+                license_plate=row["Placa del auto"],
+                brand=row["Marca del auto"],
+                model=row["Modelo del auto"],
+            )
+            for row in data
+        ]
+        Vehicle.objects.bulk_create(new_vehicles, ignore_conflicts=True)
+
+        # Step 3: Refresh Client and Vehicle references
+        document_numbers = {str(row["Número de documento"]) for row in data}
+        license_plates = {row["Placa del auto"] for row in data}
+
+        clients = {
+            client.document_number: client
+            for client in Client.objects.filter(document_number__in=document_numbers)
+        }
+        vehicles = {
+            vehicle.license_plate: vehicle
+            for vehicle in Vehicle.objects.filter(license_plate__in=license_plates)
+        }
+
+        # Step 4: Prepare Contracts
+        new_contracts = []
+        for row in data:
+            client = clients.get(str(row["Número de documento"]))
+            vehicle = vehicles.get(row["Placa del auto"])
+
+            if not client or not vehicle:
+                continue
+
+            if Contract.objects.filter(client=client, active=True).exists():
+                continue
+            if Contract.objects.filter(vehicle=vehicle, active=True).exists():
+                continue
+
+            # Parse and format dates from MM/DD/YYYY to YYYY-MM-DD
+            try:
+                start_date = datetime.strptime(
+                    row["Inicio de contrato"], "%m/%d/%Y"
+                ).date()
+                end_date = datetime.strptime(row["Fin de contrato"], "%m/%d/%Y").date()
+            except ValueError:
+                # Skip rows with invalid date formats
+                continue
+
+            new_contracts.append(
+                Contract(
+                    client=client,
+                    vehicle=vehicle,
+                    billing_cycle=row["Periodo de pago"],
+                    installment_amount=row["Cuota semanal"],
+                    start_date=start_date,
+                    end_date=end_date,
+                    active=row["Activo"],
+                )
+            )
+
+        # Step 5: Bulk create Contracts
+        Contract.objects.bulk_create(new_contracts, ignore_conflicts=True)
