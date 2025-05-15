@@ -1,146 +1,112 @@
-{% extends "base.html" %} {% block content %}
-<div class="container mt-4">
-  <!-- Header -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h3>Welcome, {{ username }}</h3>
-    <a href="{% url 'logout' %}" class="btn btn-danger">Logout</a>
-  </div>
-
-  <!-- File Upload Form -->
-  <div class="card mb-4">
-    <div class="card-body">
-      <h5 class="card-title">Upload File</h5>
-      <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        <div class="mb-3">
-          <input
-            type="file"
-            class="form-control"
-            name="file"
-            accept=".xlsx,.csv"
-          />
-        </div>
-        <button type="submit" class="btn btn-primary">Upload</button>
-      </form>
-    </div>
-  </div>
+{% extends "base.html" %}
+{% block content %}
   <div class="container mt-4">
-    {% if messages %} {% for message in messages %}
-    <div
-      class="alert alert-{{ message.tags }} alert-dismissible fade show"
-      role="alert"
-    >
-      {{ message }}
-      <button
-        type="button"
-        class="btn-close"
-        data-bs-dismiss="alert"
-        aria-label="Close"
-      ></button>
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h3>Bienvenido, {{ username }}</h3>
     </div>
-    {% endfor %} {% endif %}
-  </div>
-  <div class="card">
-    <div class="card-body">
-      <h5 class="card-title">Uploaded Data</h5>
-
-      <!-- Search Box -->
-      <input
-        type="text"
-        class="form-control mb-3"
-        placeholder="Search..."
-        id="searchInput"
-      />
-
-      <!-- Data Table -->
-      <div class="table-responsive">
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              {% for column in columns %}
-              <th>{{ column }}</th>
-              {% endfor %}
-            </tr>
-          </thead>
-          <tbody>
-            {% for row in data %}
-            <tr>
-              {% for value in row.values %}
-              <td>{{ value }}</td>
-              {% endfor %}
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+    <!-- File Upload Form -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <h5 class="card-title">Subir Archivo</h5>
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="mb-3">
+            <input type="file" class="form-control" name="file" accept=".xlsx,.csv" />
+          </div>
+          <button type="submit" class="btn btn-primary">Subir</button>
+        </form>
       </div>
-      <nav aria-label="Page navigation">
-        <ul class="pagination">
-          {% if page_obj.has_previous %}
-          <li class="page-item">
-            <a
-              class="page-link"
-              href="?page={{ page_obj.previous_page_number }}"
-              >Previous</a
-            >
-          </li>
-          {% endif %}
-
-          <li class="page-item disabled">
-            <span class="page-link"
-              >Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages}}
-            </span>
-          </li>
-
-          {% if page_obj.has_next %}
-          <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.next_page_number }}"
-              >Next</a
-            >
-          </li>
-          {% endif %}
-        </ul>
-      </nav>
-      <div class="card mt-4">
-        <div class="card-body">
-          <h5 class="card-title">Generate Report</h5>
-          <form method="post" action="{% url 'dashboard' %}">
-            {% csrf_token %}
-            <input type="hidden" name="generate_report" value="true" />
-            <div class="mb-3">
-              <label class="form-label">Select columns to include:</label>
-              <div class="row">
-                {% for column in columns %}
-                <div class="col-md-3">
-                  <div class="form-check">
-                    <input
-                      class="form-check-input"
-                      type="checkbox"
-                      name="selected_columns"
-                      value="{{ column }}"
-                      id="col_{{ forloop.counter }}"
-                    />
-                    <label
-                      class="form-check-label"
-                      for="col_{{ forloop.counter }}"
-                    >
-                      {{ column }}
-                    </label>
-                  </div>
+    </div>
+    <div class="container mt-4">
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }} alert-dismissible fade show"
+               role="alert">
+            {{ message }}
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Cerrar"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Datos Subidos</h5>
+        <!-- Search Box -->
+        <input type="text"
+               class="form-control mb-3"
+               placeholder="Buscar..."
+               id="searchInput" />
+        <!-- Data Table -->
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                {% for column in columns %}<th>{{ column }}</th>{% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in data %}
+                <tr>
+                  {% for value in row.values %}<td>{{ value }}</td>{% endfor %}
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <nav aria-label="Navegación de Páginas">
+          <ul class="pagination">
+            {% if page_obj.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+              </li>
+            {% endif %}
+            <li class="page-item disabled">
+              <span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+            </li>
+            {% if page_obj.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a>
+              </li>
+            {% endif %}
+          </ul>
+        </nav>
+        <div class="card mt-4">
+          <div class="card-body">
+            <h5 class="card-title">Generar Reporte</h5>
+            <form method="post" action="{% url 'dashboard' %}">
+              {% csrf_token %}
+              <input type="hidden" name="generate_report" value="true" />
+              <div class="mb-3">
+                <label class="form-label">Seleccione las columnas a incluir:</label>
+                <div class="row">
+                  {% for column in columns %}
+                    <div class="col-md-3">
+                      <div class="form-check">
+                        <input class="form-check-input"
+                               type="checkbox"
+                               name="selected_columns"
+                               value="{{ column }}"
+                               id="col_{{ forloop.counter }}" />
+                        <label class="form-check-label" for="col_{{ forloop.counter }}">{{ column }}</label>
+                      </div>
+                    </div>
+                  {% endfor %}
                 </div>
-                {% endfor %}
               </div>
-            </div>
-            <button type="submit" class="btn btn-success">
-              Generate Report
-            </button>
-          </form>
+              <button type="submit" class="btn btn-success">Generar Reporte</button>
+            </form>
+          </div>
         </div>
       </div>
     </div>
   </div>
-</div>
-{% endblock %} {% block extra_js %}
-<script>
+{% endblock content %}
+{% block extra_js %}
+  <script>
   document.getElementById("searchInput").addEventListener("keyup", function () {
     const value = this.value.toLowerCase();
     document.querySelectorAll("tbody tr").forEach((row) => {
@@ -148,5 +114,5 @@
       row.style.display = text.includes(value) ? "" : "none";
     });
   });
-</script>
-{% endblock %}
+  </script>
+{% endblock extra_js %}

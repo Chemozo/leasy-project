@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
     <div class="container mt-4">
-        <h1>Create New Contract</h1>
+        <h1>Crear nuevo contrato</h1>
         <form method="post">
             {% csrf_token %}
             {{ form.as_p }}
-            <button type="submit" class="btn btn-primary">Create Contract</button>
+            <button type="submit" class="btn btn-primary">Crear contrato</button>
         </form>
     </div>
 {% endblock content %}

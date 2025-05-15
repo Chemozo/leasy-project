@@ -1,28 +1,26 @@
 {% extends "base.html" %}
 {% block content %}
   <div class="container mt-4">
-    <h2>Client List</h2>
-    <!-- Search Form -->
+    <h2>Clientes</h2>
     <form method="get" class="mb-4">
       <div class="input-group">
         <input type="text"
                name="q"
                class="form-control"
-               placeholder="Search by name or document..."
+               placeholder="Buscar por nombre o documento..."
                value="{{ request.GET.q }}">
         <button type="submit" class="btn btn-primary">
-          <i class="bi bi-search"></i> Search
+          <i class="bi bi-search"></i> Buscar
         </button>
       </div>
     </form>
-    <!-- Client Table -->
     <div class="table-responsive">
       <table class="table table-hover">
         <thead class="table-light">
           <tr>
-            <th>Full Name</th>
-            <th>Document Number</th>
-            <th>Active Contract</th>
+            <th>Nombre Completo</th>
+            <th>Número de Documento</th>
+            <th>Contrato Activo</th>
           </tr>
         </thead>
         <tbody>
@@ -32,7 +30,7 @@
               <td>{{ client.document_number }}</td>
               <td>
                 {% if client.has_active_contract %}
-                  <span class="badge bg-success">Yes</span>
+                  <span class="badge bg-success">Sí</span>
                 {% else %}
                   <span class="badge bg-secondary">No</span>
                 {% endif %}
@@ -40,7 +38,7 @@
             </tr>
           {% empty %}
             <tr>
-              <td colspan="3" class="text-center">No clients found</td>
+              <td colspan="3" class="text-center">No se encontraron clientes</td>
             </tr>
           {% endfor %}
         </tbody>
@@ -50,15 +48,15 @@
       <ul class="pagination">
         {% if page_obj.has_previous %}
           <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a>
           </li>
         {% endif %}
         <li class="page-item disabled">
-          <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+          <span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
         </li>
         {% if page_obj.has_next %}
           <li class="page-item">
-            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a>
           </li>
         {% endif %}
       </ul>

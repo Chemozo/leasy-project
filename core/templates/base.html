@@ -16,19 +16,24 @@
     <div class="container">
       {% if user.is_authenticated %}
         {% if user|in_group:"Sales" or user|in_group:"Operations" or user|in_group:"Collections" %}
-          <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+          <nav class="navbar navbar-expand-lg bg-dark border-bottom border-body">
             <div class="container-fluid">
               <div class="navbar-nav">
+                <a class="navbar-brand text-white" href="{% url 'dashboard' %}">Dashboard</a>
                 {% if user|in_group:"Sales" %}
-                  <a class="nav-link" href="{% url 'client_list' %}">Clients</a>
+                  <a class="nav-link text-white" href="{% url 'client_list' %}">Clients</a>
                 {% endif %}
                 {% if user|in_group:"Operations" %}
-                  <a class="nav-link" href="{% url 'vehicle_list' %}">Vehicles</a>
+                  <a class="nav-link text-white" href="{% url 'vehicle_list' %}">Vehicles</a>
                 {% endif %}
                 {% if user|in_group:"Collections" %}
-                  <a class="nav-link" href="{% url 'contract_list' %}">Contracts</a>
+                  <a class="nav-link text-white" href="{% url 'contract_list' %}">Contracts</a>
                 {% endif %}
               </div>
+              <form method="post" action="{% url 'logout' %}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger me-2">Cerrar Sesión</button>
+              </form>
             </div>
           </nav>
         {% endif %}
