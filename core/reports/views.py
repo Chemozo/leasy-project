@@ -180,6 +180,8 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 
         # Step 4: Prepare Contracts
         new_contracts = []
+        assigned_vehicles = set()
+        assigned_clients = set()
         for row in data:
             client = clients.get(str(row["Número de documento"]))
             vehicle = vehicles.get(row["Placa del auto"])
@@ -192,14 +194,18 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             if Contract.objects.filter(vehicle=vehicle, active=True).exists():
                 continue
 
-            # Parse and format dates from MM/DD/YYYY to YYYY-MM-DD
+            if vehicle.id in assigned_vehicles:
+                continue
+            if client.id in assigned_clients:
+                continue
+
             try:
                 start_date = datetime.strptime(
                     row["Inicio de contrato"], "%m/%d/%Y"
                 ).date()
                 end_date = datetime.strptime(row["Fin de contrato"], "%m/%d/%Y").date()
-            except ValueError:
-                # Skip rows with invalid date formats
+            except ValueError as e:
+                print("Skipping row: date error", row, e)
                 continue
 
             new_contracts.append(
@@ -213,6 +219,8 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                     active=row["Activo"],
                 )
             )
+            assigned_vehicles.add(vehicle.id)
+            assigned_clients.add(client.id)
 
         # Step 5: Bulk create Contracts
-        Contract.objects.bulk_create(new_contracts, ignore_conflicts=True)
+        Contract.objects.bulk_create(new_contracts)
