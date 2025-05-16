@@ -110,7 +110,7 @@ Deployment to [pythonanywhere.com](https://www.pythonanywhere.com/)
 
    > https://help.pythonanywhere.com/pages/environment-variables-for-web-apps/
 
-8. Edit a wsgi file
+8. Edit a wsgi file:
 
 ```python
 import os
