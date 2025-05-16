@@ -1,7 +1,16 @@
 {% extends "base.html" %}
 {% block content %}
     <div class="container mt-4">
-        <h2>Vehículos</h2>
+        <div class="mb-3 d-flex justify-content-between align-items-center">
+            <h2 class="mb-0">Vehículos</h2>
+            <div>
+                <a href="{% url 'vehicle_brand_create' %}"
+                   class="btn btn-secondary me-2">Nueva Marca</a>
+                <a href="{% url 'vehicle_model_create' %}"
+                   class="btn btn-secondary me-2">Nuevo Modelo</a>
+                <a href="{% url 'vehicle_create' %}" class="btn btn-primary">Nuevo Vehículo</a>
+            </div>
+        </div>
         <div class="table-responsive">
             <table class="table table-hover">
                 <thead class="table-light">
@@ -19,18 +28,26 @@
                         <tr>
                             <td>{{ vehicle.brand }}</td>
                             <td>{{ vehicle.model }}</td>
-                            <td>{{ vehicle.plate }}</td>
+                            <td>{{ vehicle.license_plate }}</td>
                             <td>{{ vehicle.vin|default:"-" }}</td>
                             <td>
-                                {% if vehicle.last_contract_end %}
-                                    {{ vehicle.last_contract_end|date:"Y-m-d" }}
+                                {% if not vehicle.has_active_contract %}
+                                    {% if vehicle.last_contract_end %}
+                                        {{ vehicle.last_contract_end|date:"Y-m-d" }}
+                                    {% else %}
+                                        Sin contratos
+                                    {% endif %}
                                 {% else %}
-                                    Sin contratos
+                                    -
                                 {% endif %}
                             </td>
                             <td>
-                                {% if vehicle.days_since_last_contract %}
-                                    {{ vehicle.days_since_last_contract.days }} días
+                                {% if not vehicle.has_active_contract %}
+                                    {% if vehicle.days_since_last_contract %}
+                                        {{ vehicle.days_since_last_contract.days }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
                                 {% else %}
                                     -
                                 {% endif %}
