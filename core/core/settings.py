@@ -65,7 +65,6 @@ LOGIN_URL = "/users/login/"
 LOGIN_REDIRECT_URL = "/dashboard/"
 LOGOUT_REDIRECT_URL = "/users/login/"
 
-
 RQ_QUEUES = {
     "default": {
         "HOST": "localhost",
@@ -73,6 +72,18 @@ RQ_QUEUES = {
         "DB": 0,
     },
 }
+
+if not DEBUG:
+    RQ_QUEUES = {
+        "default": {
+            "HOST": os.environ.get("REDIS_HOST"),
+            "PORT": os.environ.get("REDIS_PORT"),
+            "DB": 0,
+            "PASSWORD": os.environ.get("REDIS_PASSWORD"),
+            "SSL": True,  # Redis Cloud requires SSL
+        }
+    }
+
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
@@ -172,7 +183,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "static/"
-
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
