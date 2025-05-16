@@ -110,6 +110,27 @@ Deployment to [pythonanywhere.com](https://www.pythonanywhere.com/)
 
    > https://help.pythonanywhere.com/pages/environment-variables-for-web-apps/
 
+8. Edit a wsgi file
+
+```python
+import os
+import sys
+from dotenv import load_dotenv
+
+# Set your project folder path here
+project_folder = os.path.expanduser('/home/<your-username>/leasy-project/core')
+load_dotenv(os.path.join(project_folder, '.env'))
+
+# Add the project root to the Python path
+if project_folder not in sys.path:
+    sys.path.insert(0, project_folder)
+
+os.environ['DJANGO_SETTINGS_MODULE'] = 'core.settings'
+
+from django.core.wsgi import get_wsgi_application
+application = get_wsgi_application()
+```
+
 8. Go back to the bash console
 
 ```bash
