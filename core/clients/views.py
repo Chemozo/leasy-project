@@ -3,7 +3,8 @@ from django.views.generic import ListView, CreateView
 from django.urls import reverse_lazy
 from django.db.models import Q, Exists, OuterRef
 from .models import Client
-from contracts.models import Contract  # Assuming contracts is a separate app
+from contracts.models import Contract  #
+from .forms import ClientForm
 
 
 class ClientListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
@@ -32,9 +33,9 @@ class ClientListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
 
 class ClientCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = Client
-    template_name = "clients/client_create.html"
-    fields = ["first_name", "last_name", "document_number"]
+    form_class = ClientForm
     permission_required = "clients.add_client"
+    template_name = "clients/client_create.html"
     success_url = reverse_lazy("client_list")
 
     def form_valid(self, form):
