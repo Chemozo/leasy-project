@@ -66,9 +66,8 @@ class ContractListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
                 )
             )
             .annotate(
-                days_since_oldest_pending_invoice_int=ExpressionWrapper(
-                    F("days_since_oldest_pending_invoice") / Value(1),
-                    output_field=IntegerField(),
+                days_since_oldest_pending_invoice_int=Cast(
+                    F("days_since_oldest_pending_invoice"), IntegerField()
                 )
             )
             .distinct()
