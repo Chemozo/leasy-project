@@ -8,11 +8,10 @@ from django.core.paginator import Paginator
 from django_rq import enqueue
 from .tasks import generate_report_task
 import pandas as pd
-from openpyxl import load_workbook
 from datetime import datetime
 
 from clients.models import Client
-from vehicles.models import Vehicle
+from vehicles.models import Vehicle, VehicleBrand, VehicleModel
 from contracts.models import Contract
 
 MAX_FILE_SIZE = 5 * 1024 * 1024
@@ -143,7 +142,6 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         return context
 
     def save_to_database(self, data):
-        # Step 1: Bulk create Clients
         new_clients = [
             Client(
                 document_number=row["Número de documento"],
@@ -154,18 +152,44 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         ]
         Client.objects.bulk_create(new_clients, ignore_conflicts=True)
 
-        # Step 2: Bulk create Vehicles
-        new_vehicles = [
-            Vehicle(
-                license_plate=row["Placa del auto"],
-                brand=row["Marca del auto"],
-                model=row["Modelo del auto"],
+        brand_names = {row["Marca del auto"] for row in data}
+        VehicleBrand.objects.bulk_create(
+            [VehicleBrand(name=name) for name in brand_names], ignore_conflicts=True
+        )
+        brands = {b.name: b for b in VehicleBrand.objects.filter(name__in=brand_names)}
+
+        model_tuples = {(row["Marca del auto"], row["Modelo del auto"]) for row in data}
+        VehicleModel.objects.bulk_create(
+            [
+                VehicleModel(brand=brands[brand], name=model)
+                for brand, model in model_tuples
+            ],
+            ignore_conflicts=True,
+        )
+        models = {
+            (m.brand.name, m.name): m
+            for m in VehicleModel.objects.filter(
+                brand__name__in=brand_names,
+                name__in={model for _, model in model_tuples},
             )
-            for row in data
-        ]
+        }
+
+        new_vehicles = []
+        for row in data:
+            brand = brands.get(row["Marca del auto"])
+            model = models.get((row["Marca del auto"], row["Modelo del auto"]))
+            if not brand or not model:
+                continue
+            new_vehicles.append(
+                Vehicle(
+                    license_plate=row["Placa del auto"],
+                    brand=brand,
+                    model=model,
+                    vin=row.get("VIN", None),
+                )
+            )
         Vehicle.objects.bulk_create(new_vehicles, ignore_conflicts=True)
 
-        # Step 3: Refresh Client and Vehicle references
         document_numbers = {str(row["Número de documento"]) for row in data}
         license_plates = {row["Placa del auto"] for row in data}
 
@@ -178,7 +202,6 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             for vehicle in Vehicle.objects.filter(license_plate__in=license_plates)
         }
 
-        # Step 4: Prepare Contracts
         new_contracts = []
         assigned_vehicles = set()
         assigned_clients = set()
@@ -222,5 +245,5 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             assigned_vehicles.add(vehicle.id)
             assigned_clients.add(client.id)
 
-        # Step 5: Bulk create Contracts
+        # Step 6: Bulk create Contracts
         Contract.objects.bulk_create(new_contracts)
