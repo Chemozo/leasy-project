@@ -1,23 +1,28 @@
+from datetime import timedelta
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.views.generic import ListView, CreateView
 from django.urls import reverse_lazy
 from django.db.models import (
     Q,
     F,
-    Subquery,
-    OuterRef,
     Count,
     Sum,
     Case,
     When,
     Value,
     IntegerField,
+    ExpressionWrapper,
+    DurationField,
+    Max,
+    Min,
+    DateField,
 )
-from django.db.models.functions import ExtractDay
+from django.db.models.functions import Coalesce, Now, Cast
 from django.utils import timezone
 from django import forms
 from .models import Contract, Client, Vehicle
 from invoices.models import Invoice
+from .forms import ContractCreateForm
 
 
 class ContractListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
@@ -32,11 +37,9 @@ class ContractListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
             Contract.objects.filter(active=True)
             .select_related("client", "vehicle")
             .annotate(
-                # Count pending invoices
                 pending_invoices=Count(
                     "invoices", filter=Q(invoices__status=Invoice.StatusChoices.PENDING)
                 ),
-                # Sum the total pending amount
                 total_pending_amount=Sum(
                     Case(
                         When(
@@ -47,38 +50,31 @@ class ContractListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
                         output_field=IntegerField(),
                     )
                 ),
-                # Annotate the raw difference in days
-                raw_days_since_latest_invoice=F("invoices__due_date")
-                - timezone.now().date(),
+                oldest_pending_issue_date=Min(
+                    "invoices__issue_date",
+                    filter=Q(invoices__status=Invoice.StatusChoices.PENDING),
+                ),
             )
-        )
-
-        # Add a Python-calculated field for days since the latest invoice
-        for contract in queryset:
-            if contract.raw_days_since_latest_invoice:
-                contract.days_since_latest_invoice = (
-                    contract.raw_days_since_latest_invoice.days
+            .annotate(
+                days_since_oldest_pending_invoice=ExpressionWrapper(
+                    Cast(Now(), output_field=DateField())
+                    - Coalesce(
+                        F("oldest_pending_issue_date"),
+                        Cast(Now(), output_field=DateField()),
+                    ),
+                    output_field=DurationField(),
                 )
-            else:
-                contract.days_since_latest_invoice = None
+            )
+            .annotate(
+                days_since_oldest_pending_invoice_int=ExpressionWrapper(
+                    F("days_since_oldest_pending_invoice") / Value(1),
+                    output_field=IntegerField(),
+                )
+            )
+            .distinct()
+        )
 
         return queryset
-
-
-class ContractCreateForm(forms.ModelForm):
-    class Meta:
-        model = Contract
-        fields = ["client", "vehicle", "billing_cycle", "installment_amount"]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Filter clients/vehicles without active contracts
-        self.fields["client"].queryset = Client.objects.filter(
-            ~Q(contract__active=True)
-        )
-        self.fields["vehicle"].queryset = Vehicle.objects.filter(
-            ~Q(contract__active=True)
-        )
 
 
 class ContractCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
@@ -100,5 +96,20 @@ class ContractCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView
             form.add_error("vehicle", "Vehicle has an active contract")
             return self.form_invalid(form)
 
-        form.instance.active = True  # New contracts are always active
+        form.instance.active = True
         return super().form_valid(form)
+
+
+class ContractCreateForm(forms.ModelForm):
+    class Meta:
+        model = Contract
+        fields = ["client", "vehicle", "billing_cycle", "installment_amount"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["client"].queryset = Client.objects.filter(
+            ~Q(contracts__active=True)
+        )
+        self.fields["vehicle"].queryset = Vehicle.objects.filter(
+            ~Q(contracts__active=True)
+        )

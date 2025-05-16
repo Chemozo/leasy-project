@@ -1,7 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
     <div class="container mt-4">
-        <h2>Contratos Activos</h2>
+        <div class="mb-3 d-flex justify-content-between align-items-center">
+            <h2 class="mb-0">Contratos Activos</h2>
+            <a href="{% url 'contract_create' %}" class="btn btn-primary">Nuevo Contrato</a>
+        </div>
         <div class="table-responsive">
             <table class="table table-hover">
                 <thead class="table-light">
@@ -24,9 +27,9 @@
                             <td>{{ contract.installment_amount }}</td>
                             <td>{{ contract.pending_invoices }}</td>
                             <td>{{ contract.total_pending_amount }}</td>
-                            <td>
-                                {% if contract.days_since_latest_invoice %}
-                                    {{ contract.days_since_latest_invoice.days }} días
+                            <td class="text-center">
+                                {% if contract.days_since_oldest_pending_invoice %}
+                                    {{ contract.days_since_oldest_pending_invoice.days }}
                                 {% else %}
                                     -
                                 {% endif %}

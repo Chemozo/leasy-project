@@ -20,7 +20,6 @@ class Invoice(models.Model):
         auto_now_add=True,
     )
     period_end = models.DateField()
-    due_date = models.DateField()
     amount = models.DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -53,19 +52,19 @@ class Invoice(models.Model):
         """Actualización automática de estado"""
         if self.payment_date:
             self.status = self.StatusChoices.PAID
-        elif self.due_date < timezone.now().date():
+        elif self.period_end < timezone.now().date():
             self.status = self.StatusChoices.OVERDUE
         super().save(*args, **kwargs)
 
     @property
     def is_overdue(self):
         return (
-            self.due_date < timezone.now().date()
+            self.period_end < timezone.now().date()
             and self.status != self.StatusChoices.PAID
         )
 
     @classmethod
-    def calculate_due_date(cls, period_end, billing_cycle):
+    def calculate_period_end(cls, period_end, billing_cycle):
         """Calcula la fecha de vencimiento según el ciclo de facturación usando relativedelta"""
         if billing_cycle == "weekly":
             return period_end + relativedelta(weeks=1)
