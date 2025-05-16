@@ -4,6 +4,14 @@ A Django-based platform for managing clients, vehicles, contracts, invoices, and
 
 ---
 
+## Requirements
+
+- Python 3.8+
+- Django 5.2+
+- MySQL (for production, SQLite for development)
+
+---
+
 ## Features
 
 - **User Authentication**: Custom user model with email login.
@@ -13,7 +21,6 @@ A Django-based platform for managing clients, vehicles, contracts, invoices, and
 - **Contracts**: Create and list contracts, enforce unique active contracts per client/vehicle.
 - **Invoices**: Generate invoices via management command, track status (paid, pending, overdue).
 - **Reports**: Upload data, generate Excel reports, and send them via email.
-- **Admin Panel**: Manage all entities via Django admin.
 - **File Uploads**: Supports .xlsx and .csv files for bulk data import.
 - **Responsive UI**: Bootstrap-based templates.
 
@@ -88,14 +95,32 @@ python manage.py runserver
 
 ---
 
-## Deployment (PythonAnywhere)
+Deployment to [pythonanywhere.com](https://www.pythonanywhere.com/)
 
-- Update `ALLOWED_HOSTS` in `core/settings.py` to include your PythonAnywhere domain.
-- Set up your MySQL database and environment variables in the PythonAnywhere dashboard.
-- Map `/static/` to `/home/<username>/leasy-project/core/staticfiles` in the Web tab.
-- Reload your web app after each change.
+1. Go tu user dashboard
+2. Navigate to consoles tab
+3. Open a bash console
+4. Follow instructions below:
 
----
+   > https://help.pythonanywhere.com/pages/DeployExistingDjangoProject/
+
+5. From dashboard navigate to Databases
+6. Create new database
+7. Follow instructions to add environment variables:
+
+   > https://help.pythonanywhere.com/pages/environment-variables-for-web-apps/
+
+8. Go back to the bash console
+
+```bash
+# Run Migrations
+./manage.py migrate
+
+# Collect static files
+./manage.py collectstatic
+```
+
+9.  Reload Your Web App
 
 ## Scheduled Tasks
 
@@ -109,7 +134,7 @@ cd /home/<username>/leasy-project/core && /home/<username>/.virtualenvs/<your-vi
 
 ## Notes
 
-- **No Redis/async queue is required** for email/report tasks; they run synchronously.
+- **Redis/async queue** for email/report will not be used in production due to limitations with PythonAnywhere.
 - For background tasks or async processing, see the comments in the code and this README.
 - All sensitive settings should be managed via environment variables.
 
