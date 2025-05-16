@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.shortcuts import redirect
 from django.conf import settings
 from django.core.paginator import Paginator
+
 from django_rq import enqueue
 from .tasks import generate_report_task
 import pandas as pd
@@ -31,7 +32,12 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 return redirect("dashboard")
 
             data = request.session.get("uploaded_data", [])
-            enqueue(generate_report_task, request.user.email, selected_columns, data)
+            if settings.DEBUG:
+                enqueue(
+                    generate_report_task, request.user.email, selected_columns, data
+                )
+            else:
+                generate_report_task(request.user.email, selected_columns, data)
             messages.success(
                 request, "Report is being generated. You'll receive an email shortly."
             )
