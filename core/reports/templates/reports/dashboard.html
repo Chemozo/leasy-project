@@ -104,9 +104,8 @@
       </div>
     </div>
   </div>
-{% endblock content %}
-{% block extra_js %}
-  <script>
+  {% block extra_js %}
+    <script>
   document.getElementById("searchInput").addEventListener("keyup", function () {
     const value = this.value.toLowerCase();
     document.querySelectorAll("tbody tr").forEach((row) => {
@@ -114,5 +113,6 @@
       row.style.display = text.includes(value) ? "" : "none";
     });
   });
-  </script>
-{% endblock extra_js %}
+    </script>
+  {% endblock extra_js %}
+{% endblock content %}
